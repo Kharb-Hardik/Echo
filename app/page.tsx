@@ -1,15 +1,45 @@
 'use client'
 
+import transcript from "@/actions/transcript";
 import Message from "@/components/Message";
 import Recorder, { mimeType } from "@/components/Recorder";
 import { SettingsIcon } from "lucide-react";
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useFormState } from "react-dom";
+
+const initialState={
+  sender:"",
+  response:"",
+  id:""
+}
+
+export type Message = {
+  sender: string;
+  response: string;
+  id: string;
+};
 
 export default function Home() {
 
   const fileRef=useRef<HTMLInputElement | null>(null);
   const submitRef=useRef<HTMLButtonElement | null>(null);
+  const [state,formAction]=useFormState(transcript,initialState);
+  const [messages,setMessages]= useState<Message[]>([]);
+
+  useEffect(()=>{
+    if(state.response && state.sender){
+      setMessages(messages =>[
+        {
+          sender:state.sender || "",
+          response:state.response || "",
+          id:state.id || ""
+        },
+        ...messages
+      ]);
+    }  
+  },[state]);
+
 
   const uploadAudio=(blob:Blob)=>{
     const file=new File([blob],"audio.webm",{type:mimeType});
