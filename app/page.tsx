@@ -6,7 +6,9 @@ import Recorder, { mimeType } from "@/components/Recorder";
 import { SettingsIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
+
+
 
 const initialState={
   sender:"",
@@ -24,7 +26,7 @@ export default function Home() {
 
   const fileRef=useRef<HTMLInputElement | null>(null);
   const submitRef=useRef<HTMLButtonElement | null>(null);
-  const [state,formAction]=useFormState(transcript,initialState);
+  const [state,formAction]=useActionState(transcript,initialState);
   const [messages,setMessages]= useState<Message[]>([]);
 
   useEffect(()=>{
