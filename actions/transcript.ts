@@ -37,6 +37,7 @@ async function transcript(prevState: any, formData: FormData) {
     console.log("== Sending request for transcription ==");
 
     // Azure OpenAI Whisper Transcription API
+    
     const transcriptionResponse = await fetch(
         `${process.env.AZURE_ENDPOINT}/openai/deployments/${process.env.AZURE_DEPLOYMENT_NAME}/audio/transcriptions?api-version=2023-09-01-preview`,
         {

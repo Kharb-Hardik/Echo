@@ -72,48 +72,41 @@ function Recorder({uploadAudio}:{uploadAudio:(blob:Blob)=>void}) {
     }
   
     return (
-    <div className='flex items-center justify-center text-white'>
-
-        {!permission && (
-            <button onClick={getMicPerm}>Get Microphone Permission</button>
-        )};
-
-        {pending && (
-            <Image 
-                alt="Recording"
-                src={activeIcon}
-                width={125}
-                height={125}
-                priority
-                className='assistant gray-scale'
-            />
-        )}
-
-        {permission && recordingStatus==="inactive" &&!pending &&(
-            <Image 
-                alt="Not Recording"
-                src={notActiveIcon}
-                width={125}
-                height={125}
-                onClick={startRecording}
-                priority={true}
-                className='assistant cursor-pointer hover:scale-110 duration-150 transition-all ease-in-out'
-            />
-        )}
-
-        {recordingStatus==="recording" && (
-            <Image 
-                alt="Recording"
-                src={activeIcon}
-                width={125}
-                height={125}
-                onClick={stopRecording}
-                priority={true}
-                className='assistant cursor-pointer hover:scale-110 duration-150 transition-all ease-in-out'
-            />
-        )}
-    </div>
-  )
+        <div className='flex items-center justify-center text-white'>
+    
+            {!permission && (
+                <button onClick={getMicPerm}>Get Microphone Permission</button>
+            )}
+    
+            {pending && (
+                <Image 
+                    alt="Recording"
+                    src={activeIcon}
+                    priority
+                    className='w-20 h-20 assistant gray-scale'
+                />
+            )}
+    
+            {permission && recordingStatus==="inactive" && !pending &&(
+                <Image 
+                    alt="Not Recording"
+                    src={notActiveIcon}
+                    onClick={startRecording}
+                    priority={true}
+                    className='w-20 h-20  cursor-pointer hover:scale-110 duration-150 transition-all ease-in-out'
+                />
+            )}
+    
+            {recordingStatus==="recording" && (
+                <Image 
+                    alt="Recording"
+                    src={activeIcon}
+                    onClick={stopRecording}
+                    priority={true}
+                    className='w-20 h-20  cursor-pointer hover:scale-110 duration-150 transition-all ease-in-out'
+                />
+            )}
+        </div>
+    )
 }
-
 export default Recorder
