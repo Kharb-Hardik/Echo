@@ -14,37 +14,43 @@ function Voice({
   displaySettings: boolean;
 }) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] =
-    useState<SpeechSynthesisVoice | null>(null);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
 
   const [pitch, setPitch] = useState(1);
   const [rate, setRate] = useState(1);
   const [volume, setVolume] = useState(1);
-
-  const synth = window.speechSynthesis;
+  const [synth, setSynth] = useState<SpeechSynthesis | null>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSynth(window.speechSynthesis);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!synth) return;
+
     const loadVoices = () => {
-        let availableVoices = window.speechSynthesis.getVoices();
-        
-        if (availableVoices.length > 0) {
-          setVoices(availableVoices);
-          setSelectedVoice(availableVoices[0]);
-        } else {
-          // Force the voices to load properly by re-fetching after a delay
-          setTimeout(() => {
-            availableVoices = window.speechSynthesis.getVoices();
-            setVoices(availableVoices);
-            if (availableVoices.length > 0 && !selectedVoice) {
-              setSelectedVoice(availableVoices[0]);
-            }
-          }, 200);
-        }
-      };
+      let availableVoices = synth.getVoices();
       
+      if (availableVoices.length > 0) {
+        setVoices(availableVoices);
+        setSelectedVoice(availableVoices[0]);
+      } else {
+        // Retry fetching voices after a short delay
+        setTimeout(() => {
+          availableVoices = synth.getVoices();
+          setVoices(availableVoices);
+          if (availableVoices.length > 0 && !selectedVoice) {
+            setSelectedVoice(availableVoices[0]);
+          }
+        }, 200);
+      }
+    };
+
     loadVoices();
 
-    if (typeof window !== "undefined" && synth.onvoiceschanged !== undefined) {
+    if (synth.onvoiceschanged !== undefined) {
       synth.onvoiceschanged = loadVoices;
     }
   }, [synth]);
@@ -58,11 +64,11 @@ function Voice({
     utterance.rate = rate;
     utterance.volume = volume;
 
-    synth.cancel(); // Ensure any ongoing speech is stopped before starting a new one.
+    synth.cancel();
     synth.speak(utterance);
 
     return () => {
-      synth.cancel(); // Clean up when the component unmounts or state changes
+      synth.cancel();
     };
   }, [state, selectedVoice, pitch, rate, volume, synth]);
 
@@ -72,74 +78,76 @@ function Voice({
   };
 
   const handlePitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const pitchValue = parseFloat(event.target.value);
-    setPitch(pitchValue);
+    setPitch(parseFloat(event.target.value));
   };
 
   const handleRateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const rateValue = parseFloat(event.target.value);
-    setRate(rateValue);
+    setRate(parseFloat(event.target.value));
   };
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const volumeValue = parseFloat(event.target.value);
-    setVolume(volumeValue);
+    setVolume(parseFloat(event.target.value));
   };
 
   return (
-    <div className="flex flex-col items-center justify-center text-white">
+    <div className="flex flex-col items-center justify-center text-white w-full mt-4">
       {displaySettings && (
         <>
-          <div className="w-fit">
-            <p className="text-xs text-gray-500 p-2">Voice:</p>
-            <select
-              value={selectedVoice?.name || ""}
-              onChange={handleVoiceChange}
-              className="flex-1 bg-purple-500 text-white border border-gray-300 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-purple-500 dark:focus:border-purple-500"
-            >
-              {voices.map((voice) => (
-                <option key={voice.name} value={voice.name}>
-                  {voice.name} ({voice.lang})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex pb-5">
-            <div className="p-2">
-              <p className="text-xs text-gray-500 p-2">Pitch:</p>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={pitch}
-                onChange={handlePitchChange}
-                className="accent-purple-500"
-              />
+          <div className="w-full max-w-md space-y-4">
+            <div>
+              <label className="text-sm text-gray-400">Voice</label>
+              <select
+                value={selectedVoice?.name || ""}
+                onChange={handleVoiceChange}
+                className="w-full bg-purple-600 text-white border border-gray-700 rounded-lg p-2 mt-1"
+              >
+                {voices.map((voice) => (
+                  <option key={voice.name} value={voice.name}>
+                    {voice.name} ({voice.lang})
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="p-2">
-              <p className="text-xs text-gray-500 p-2">Rate:</p>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={rate}
-                onChange={handleRateChange}
-                className="accent-purple-500"
-              />
-            </div>
-            <div className="p-2">
-              <p className="text-xs text-gray-500 p-2">Volume:</p>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="accent-purple-500"
-              />
+
+            <div className="flex gap-4">
+              <div className="flex flex-col w-full">
+                <label className="text-sm text-gray-400">Pitch</label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={pitch}
+                  onChange={handlePitchChange}
+                  className="accent-purple-500 mt-1"
+                />
+              </div>
+
+              <div className="flex flex-col w-full">
+                <label className="text-sm text-gray-400">Rate</label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={rate}
+                  onChange={handleRateChange}
+                  className="accent-purple-500 mt-1"
+                />
+              </div>
+
+              <div className="flex flex-col w-full">
+                <label className="text-sm text-gray-400">Volume</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="accent-purple-500 mt-1"
+                />
+              </div>
             </div>
           </div>
         </>

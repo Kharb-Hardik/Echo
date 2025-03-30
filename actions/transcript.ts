@@ -7,7 +7,9 @@ async function transcript(prevState: any, formData: FormData) {
 
     if (
         !process.env.AZURE_API_KEY ||
+        !process.env.AZURE_CHAT_API_KEY ||
         !process.env.AZURE_ENDPOINT ||
+        !process.env.AZURE_CHAT_ENDPOINT ||
         !process.env.AZURE_DEPLOYMENT_NAME ||
         !process.env.AZURE_DEPLOYMENT_COMPLETIONS_NAME
     ) {
@@ -37,7 +39,6 @@ async function transcript(prevState: any, formData: FormData) {
     console.log("== Sending request for transcription ==");
 
     // Azure OpenAI Whisper Transcription API
-    
     const transcriptionResponse = await fetch(
         `${process.env.AZURE_ENDPOINT}/openai/deployments/${process.env.AZURE_DEPLOYMENT_NAME}/audio/transcriptions?api-version=2023-09-01-preview`,
         {
@@ -65,12 +66,12 @@ async function transcript(prevState: any, formData: FormData) {
 
     // Azure OpenAI Chat Completion API
     const chatResponse = await fetch(
-        `${process.env.AZURE_ENDPOINT}/openai/deployments/${process.env.AZURE_DEPLOYMENT_COMPLETIONS_NAME}/chat/completions?api-version=2023-09-01-preview`,
+        `${process.env.AZURE_CHAT_ENDPOINT}/openai/deployments/${process.env.AZURE_DEPLOYMENT_COMPLETIONS_NAME}/chat/completions?api-version=2023-09-01-preview`,
         {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "api-key": process.env.AZURE_API_KEY,
+                "api-key": process.env.AZURE_CHAT_API_KEY,
             },
             body: JSON.stringify({
                 messages: [

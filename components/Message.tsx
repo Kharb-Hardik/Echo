@@ -14,7 +14,7 @@ function Messages({ messages }: Props) {
     } max-w-3xl relative`}>
       <LoadingMessage />
       {!messages.length && (
-        <div className='ml-4 bottom-0 left-0 right-0 flex flex-col items-center justify-center text-center text-xl mb-20'>
+        <div className='ml-2 bottom-0 left-0 right-0 flex flex-col items-center justify-center text-center text-xl mb-20'>
           <p className='text-white animate-pulse'>Start a conversation.</p>
           <br />
           <ChevronDownCircle 
