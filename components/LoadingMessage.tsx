@@ -1,19 +1,21 @@
-'use client';
+"use client";
 
 import { useFormStatus } from "react-dom";
 import { BeatLoader } from "react-spinners";
 
-function LoadingMessage() {
-    const { pending } = useFormStatus();
-    return (
-        pending && (
-            <div className="flex justify-end my-3">
-                <div className="flex items-center justify-center rounded-xl p-4 max-w-[80%] w-fit bg-gray-700 shadow-lg animate-pulse">
-                    <BeatLoader size={8} color="#ffffff" />
-                </div>
-            </div>
-        )
-    )
-}
+export default function LoadingMessage() {
+  const { pending } = useFormStatus();
 
-export default LoadingMessage;
+  if (!pending) return null;
+
+  return (
+    <div className="flex justify-end my-3" aria-live="polite" aria-busy="true">
+      <div className="flex items-center gap-3 rounded-xl px-5 py-3 max-w-[80%] w-fit bg-gradient-to-br from-purple-600 to-indigo-700 shadow-xl transition-all duration-300">
+        <span className="text-sm text-white opacity-80">
+          Transcribing audio...
+        </span>
+        <BeatLoader size={8} color="#ffffff" />
+      </div>
+    </div>
+  );
+}

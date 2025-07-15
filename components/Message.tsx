@@ -1,42 +1,48 @@
-import React from 'react';
-import { Message } from "@/app/page"
-import { ChevronDownCircle } from 'lucide-react';
-import LoadingMessage from './LoadingMessage';
+import React from "react";
+import { Message } from "@/app/page";
+import { ChevronDownCircle } from "lucide-react";
+import LoadingMessage from "./LoadingMessage";
 
 interface Props {
   messages: Message[];
 }
 
-function Messages({ messages }: Props) {
+export default function Messages({ messages }: Props) {
+  const isEmpty = messages.length === 0;
+
   return (
-    <div className={`flex flex-col min-h-screen p-10 pt-20 mx-auto ${
-      messages.length > 0 ? "pb-96" : "pb-52"
-    } max-w-3xl relative`}>
+    <div
+      className={`flex flex-col min-h-screen px-6 pt-24 mx-auto ${
+        isEmpty ? "pb-52" : "pb-96"
+      } max-w-3xl relative`}
+      aria-live="polite"
+    >
       <LoadingMessage />
-      {!messages.length && (
-        <div className='ml-2 bottom-0 left-0 right-0 flex flex-col items-center justify-center text-center text-xl mb-20'>
-          <p className='text-white animate-pulse'>Start a conversation.</p>
-          <br />
-          <ChevronDownCircle 
-            size={50}
-            className='animate-bounce text-white'
+
+      {isEmpty && (
+        <div className="flex flex-col items-center justify-center text-center text-lg text-white/80 mb-20 animate-fade-in">
+          <p className="animate-pulse">Start a conversation.</p>
+          <ChevronDownCircle
+            size={32}
+            className="mt-8 animate-bounce text-white/90"
           />
         </div>
       )}
-      <div className='space-y-6 w-full'>
+
+      <div className="flex flex-col space-y-6 w-full">
         {messages.map((message, index) => (
-          <div key={message.id || index} className='space-y-3'>
+          <div key={message.id || index} className="space-y-3">
             {message.response && (
-              <div className='flex justify-start'>
-                <div className='bg-gray-800 text-white p-4 rounded-xl shadow-md max-w-[80%] w-fit'>
+              <div className="flex justify-start">
+                <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/10 transition-all hover:scale-[1.01] duration-200">
                   {message.response}
                 </div>
               </div>
             )}
-            
+
             {message.sender && (
-              <div className='flex justify-end'>
-                <div className='message text-white p-4 rounded-xl shadow-md max-w-[80%] w-fit'>
+              <div className="flex justify-end">
+                <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white p-4 rounded-xl shadow-lg max-w-[80%] w-fit">
                   {message.sender}
                 </div>
               </div>
@@ -44,14 +50,6 @@ function Messages({ messages }: Props) {
           </div>
         ))}
       </div>
-
-      {/* Render LoadingMessage */}
-      
-
-      {/* Message to appear at the bottom */}
-      
     </div>
-  )
+  );
 }
-
-export default Messages;

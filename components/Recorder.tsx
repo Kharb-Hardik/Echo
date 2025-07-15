@@ -1,112 +1,105 @@
-'use client'
-import Image from 'next/image'
-import React, { act, use, useEffect, useRef, useState } from 'react'
-import activeIcon from '@/img/active.gif'
-import notActiveIcon from '@/img/non-active.png'
-import { useFormStatus } from 'react-dom'
-import { StopCircle } from 'lucide-react'
+import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
+import activeIcon from "@/img/active.gif";
+import notActiveIcon from "@/img/non-active.png";
+import { useFormStatus } from "react-dom";
 
-export const mimeType="audio/webm"
+export const mimeType = "audio/webm";
 
-function Recorder({uploadAudio}:{uploadAudio:(blob:Blob)=>void}) {
-    const mediaRecorder= useRef<MediaRecorder | null>(null);
-    const {pending}=useFormStatus();
-    const [permission,setPermission]=useState(false);
-    const [stream,setStream]=useState<MediaStream | null>(null);
-    const [recordingStatus,setRecrodingStatus]=useState("inactive");
-    const [audioChunks,setAudioChunks]=useState<Blob[]>([]);
+function Recorder({ uploadAudio }: { uploadAudio: (blob: Blob) => void }) {
+  const mediaRecorder = useRef<MediaRecorder | null>(null);
+  const { pending } = useFormStatus();
+  const [permission, setPermission] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
 
-    useEffect(()=>{
-        getMicPerm();
-    },[]);
+  useEffect(() => {
+    getMicPerm();
+  }, []);
 
-    const getMicPerm=async()=>{
-        if("MediaRecorder" in window){
-            try{
-                const steamData=await navigator.mediaDevices.getUserMedia({audio:true});
-                setPermission(true);
-                setStream(steamData);
-            }catch(error:any){
-                alert("Please Allow Microphone Permission");
-            }
-        }
-        else{
-                alert("Media Recorder is not Supported in your Browser.");
-            }
-        
+  const getMicPerm = async () => {
+    if ("MediaRecorder" in window) {
+      try {
+        const streamData = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        setPermission(true);
+        setStream(streamData);
+      } catch {
+        alert("Please Allow Microphone Permission");
+      }
+    } else {
+      alert("Media Recorder is not Supported in your Browser.");
     }
+  };
 
-    const startRecording=()=>{
-        if(stream===null || pending) return;
-        setRecrodingStatus("recording");
+  const startRecording = () => {
+    if (!stream || pending) return;
 
-        //create new media recorder using stream
-        //stream is where we take permission from user
-        //but we need a new media
-        const media=new MediaRecorder(stream,{mimeType});
-        mediaRecorder.current=media;
-        mediaRecorder.current.start();
+    const media = new MediaRecorder(stream, { mimeType });
+    mediaRecorder.current = media;
+    media.start();
 
-        let localAudioChunks: Blob[]=[];
-        mediaRecorder.current.ondataavailable=(event)=>{
-            if(typeof event.data === "undefined") return;
-            if(event.data.size===0) return;
+    const localChunks: Blob[] = [];
+    media.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        localChunks.push(event.data);
+      }
+    };
 
-            localAudioChunks.push(event.data);
-        }
+    setAudioChunks(localChunks);
+    setRecording(true);
+  };
 
-        setAudioChunks(localAudioChunks);
+  const stopRecording = () => {
+    if (!mediaRecorder.current || pending) return;
+
+    mediaRecorder.current.stop();
+    setRecording(false); // ✅ Immediately reset UI state
+
+    // Handle audio processing async
+    mediaRecorder.current.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: mimeType });
+
+      // Start processing but UI is already updated
+      uploadAudio(audioBlob);
+      setAudioChunks([]);
+    };
+  };
+
+  const toggleRecording = () => {
+    if (recording) {
+      stopRecording();
+    } else {
+      startRecording();
     }
+  };
 
-    const stopRecording=()=>{
-        if(mediaRecorder.current===null || pending) return;
-            
-        setRecrodingStatus("inactive");
-        mediaRecorder.current.stop();
-        mediaRecorder.current.onstop=()=>{
-            const audioBlob=new Blob(audioChunks,{type:mimeType});
-            const audioUrl=URL.createObjectURL(audioBlob);
-            uploadAudio(audioBlob);
-            setAudioChunks([]);
-        }
-    }
-  
-    return (
-        <div className='flex items-center justify-center text-white'>
-    
-            {!permission && (
-                <button onClick={getMicPerm}>Get Microphone Permission</button>
-            )}
-    
-            {pending && (
-                <Image 
-                    alt="Recording"
-                    src={activeIcon}
-                    priority
-                    className='w-20 h-20 assistant gray-scale'
-                />
-            )}
-    
-            {permission && recordingStatus==="inactive" && !pending &&(
-                <Image 
-                    alt="Not Recording"
-                    src={notActiveIcon}
-                    onClick={startRecording}
-                    priority={true}
-                    className='w-20 h-20  cursor-pointer hover:scale-110 duration-150 transition-all ease-in-out'
-                />
-            )}
-    
-            {recordingStatus==="recording" && (
-                <Image 
-                    alt="Recording"
-                    src={activeIcon}
-                    onClick={stopRecording}
-                    priority={true}
-                    className='w-20 h-20  cursor-pointer hover:scale-110 duration-150 transition-all ease-in-out'
-                />
-            )}
-        </div>
-    )
+  return (
+    <div className="w-full flex items-center justify-center text-white">
+      {!permission && (
+        <button
+          onClick={getMicPerm}
+          className="text-sm bg-purple-600 px-3 py-1 rounded-md hover:bg-purple-700 transition"
+        >
+          Get Mic Access
+        </button>
+      )}
+
+      {permission && (
+        <Image
+          alt={recording ? "Recording..." : "Start Recording"}
+          src={recording ? activeIcon : notActiveIcon}
+          onClick={toggleRecording}
+          priority
+          className={`w-12 mx-auto h-12 cursor-pointer hover:scale-110 active:scale-95 transition-all duration-150 ${
+            recording ? "animate-pulse" : ""
+          }`}
+        />
+      )}
+    </div>
+  );
 }
-export default Recorder
+
+export default Recorder;

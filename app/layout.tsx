@@ -25,7 +25,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className="h-screen overflow-hidden">
+        className={`h-screen overflow-hidden ${geistSans.variable} ${geistMono.variable}`}
+      >
         {children}
       </body>
     </html>
